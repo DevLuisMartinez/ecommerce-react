@@ -1,0 +1,22 @@
+.ProductGrid{
+    margin: 1em 0;
+}
+
+.ProductGridItem{
+    border: 1px solid #1c3643;
+    box-shadow: 2px 1px 10px -4px;
+    margin: 10px 0;
+    border-radius: 10px;
+}
+
+.ProductGridItem__image {
+    box-shadow: 0px 5px 5px -5px;
+}
+
+.ProductGridItem__info {
+    margin: 10px;
+}
+
+.ProductGridItem__info button {
+    height: 40px;
+}

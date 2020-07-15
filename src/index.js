@@ -1,22 +1,24 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import ReactDOM from 'react-dom'; 
 import { Provider } from 'react-redux';
-import { createStore, combineReducers } from 'redux';
+import { createStore, combineReducers, applyMiddleware } from 'redux';
 import { reducer as formReducer } from 'redux-form';
 import * as reducers from './reducers';
+import thunk from 'redux-thunk';
 import './index.css';
-import App from './App';
+import App from './components/App';
 import * as serviceWorker from './serviceWorker';
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const store = createStore(combineReducers({
   ...reducers,
   form: formReducer
-}));
+}), applyMiddleware(thunk));
 
 ReactDOM.render(
   <React.StrictMode>
     <Provider store={ store }>
-      <App />
+        <App />
     </Provider>
   </React.StrictMode>,
   document.getElementById('root')

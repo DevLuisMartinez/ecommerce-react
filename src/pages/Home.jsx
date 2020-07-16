@@ -3,6 +3,7 @@ import { connect } from 'react-redux';
 
 import ProductsGrid from '../components/ProductsGrid';
 import { getProducts } from '../reducers/Products';
+import { addCart } from '../reducers/Cart';
 
 class Home extends Component {
 
@@ -11,6 +12,10 @@ class Home extends Component {
         getProducts();
     }
 
+    addProduct = (product) => {
+        const { addCart } = this.props;
+        addCart({...product, quantity: 1, product_id: product});
+    }
 
     render(){
 
@@ -20,7 +25,7 @@ class Home extends Component {
                 <div className="col-12 text-center">
                     <h2>Our Products</h2>
                 </div>
-                <ProductsGrid products={products}/>
+                <ProductsGrid products={products} handleClickAddCart={this.addProduct}/>
             </div>
         )
     }
@@ -28,11 +33,13 @@ class Home extends Component {
 }
 
 const mapStateToProps = state => {
+    console.log(state);
     return state;
 };
 
 const mapDispatchToProps = dispatch => ({
-    getProducts: () => dispatch( getProducts() )
+    getProducts: () => dispatch( getProducts() ),
+    addCart: payload => dispatch( addCart(payload) )
 });
  
 export default connect(mapStateToProps,mapDispatchToProps)(Home);

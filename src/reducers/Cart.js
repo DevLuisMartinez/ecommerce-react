@@ -1,11 +1,12 @@
 import axios from 'axios';
-import { act } from 'react-dom/test-utils';
-
+import { DISABLED, TOAST } from './Notify';
+import * as constants from '../constants';
 //types
 const ADD_CART = 'CART/ADD';
 const INCREMENT_CART = 'CART/INCREMENT';
 const DECREMENT_CART = 'CART/DECREMENT';
 const GET_CURRENT_CART = 'CART/GET/CURRENT';
+
 
 //initialState
 const initialState = {
@@ -31,8 +32,9 @@ export default function reducer(state=initialState, action){
                 products: [...state.products, action.payload],
                 products_quantity: state.products_quantity + 1
 
-            } 
+            }
         case INCREMENT_CART:
+            console.log(state);
             return {
                 ...state,
                 products: state.products.map( product => 
@@ -70,36 +72,113 @@ const productsStore = (productsState) => {
     return products;
 }
 
-const existProductInCart = (productsState, idProduct) => {
+// const existProductInCart = (productsState, idProduct) => {
     
-    if(productsState.length > 0){
-        const products = productsStore(productsState);
-        const productFound = products[idProduct];
-        if(productFound) return true;
-    }   
+//     if(productsState.length > 0){
+//         const products = productsStore(productsState);
+//         const productFound = products[idProduct];
+//         if(productFound) return true;
+//     }   
     
-    return false;
+//     return false;
+// }
+
+
+const dataProductsSave = (products) => {
+
+    const data = products.map( (product) => ({
+        product_id: product.id,
+        quantity: product.quantity
+    }));
+
+    return data;
 }
 
-const saveProductInCart = async (product) => {
+// const saveProductInCart = async (products) => {
 
-    try{
-        const res = await axios.post('http://localhost:8089/cart/products', {
-            products: [{
-                product_id : product.id,
-                quantity: product.quantity
-            }]
-        });
-        console.log(res);
-    }catch(error){
-        console.log(error);
+//     const data = {
+//         products: dataProductsSave(products)
+//     };
+
+//     //console.log(data);
+//     // try{
+//     //     const res = await axios.post('http://localhost:8089/cart/products', data);
+//     //     console.log(res);
+//     // }catch(error){
+//     //     console.log(error);
+//     // }
+// }
+
+export const saveProductsInCart = () => (
+    (dispatch, getState) => {
+        try{
+            const { Cart: {products} } = getState();
+            const data = {
+                products: dataProductsSave(products)
+            };
+            axios.post('http://localhost:8089/cart/products', data)
+            .then( ({data}) => {
+                dispatch({ type: TOAST, payload: { 
+                    message: 'PRODUCT ADDED',
+                    color: constants.SUCCESS,
+                    show: true
+                 }})
+            });
+        }catch(error){
+            console.log(error);
+            dispatch({ type: TOAST, payload: { 
+                message: 'ERROR ADDING PRODUCT',
+                color: constants.ERROR,
+                show: true
+             }})
+        }
+
+        setTimeout(()=>{
+            dispatch({ type: DISABLED, payload: ''});
+            dispatch({ type: TOAST, payload: { 
+                message: '',
+                color: constants.DEFAULT,
+                show: false
+             }})
+        },3000)
+        
     }
-}
+)
+
+
+export const updateProductsInCart = () => (
+    async (dispatch, getState) => {
+        try{
+            const { Cart: {products} } = await getState();
+            const data = {
+                products: await dataProductsSave(products)
+            };
+            const res = await axios.post('http://localhost:8089/cart/products', data);
+            console.log(res);
+        }catch(error){
+            console.log(error);
+        }
+       
+    }
+)
 
 const quantityByProduct = (products) => {
     const sum = products.map( product => product.pivot.quantity);
     return sum.reduce((acum, el) => el + acum, 0);
 }
+
+export const existProductInCart = (idProduct) => (
+    (dispatch, getState) => {
+            const { Cart: { products }} = getState();
+            if(products.length > 0){
+                const data = productsStore(products);
+                const productFound = data[idProduct];
+                if(productFound) return true;
+            }   
+            
+            return false;
+    }
+);
 
 export const getCurrentCart = () => (
     async dispatch => {
@@ -109,7 +188,8 @@ export const getCurrentCart = () => (
                 ...data,
                 products: data.products.map( product => ({
                     ...product,
-                    quantity: product.pivot.quantity
+                    quantity: product.pivot.quantity,
+                    product_id: product.id
                 })),
                 quantity_cart: quantityByProduct(data.products)
             }
@@ -120,28 +200,15 @@ export const getCurrentCart = () => (
     }
 );
 
-export const addCart = payload => (
-    (dispatch, getState) => {
-        const { Cart: { products }} = getState();
-        if(!existProductInCart(products,payload.id)){
-            //saveProductInCart(payload);
-            dispatch({ type: ADD_CART, payload: payload })
-        }else{
-            dispatch(incrementCart(payload.id));
-        }
-       
+export const incrementQuantityProductInCart = payload => (
+    (dispatch) => {
+            dispatch({ type: INCREMENT_CART, payload });
+        setTimeout(()=>{
+            dispatch({ type: DISABLED, payload: ''});
+        },2000);
+        
     }
-);
-
-export const incrementCart = payload => ({
-    type:INCREMENT_CART,
-    payload
-});
-
-export const decrementCart = payload => ({
-    type:DECREMENT_CART,
-    payload
-});
+)
 
 export const checkout = () => (
     async (dispatch) => {
@@ -154,3 +221,19 @@ export const checkout = () => (
         
     }
 )
+
+export const addCart = payload => ({
+    type:ADD_CART,
+    payload
+});
+
+export const incrementCart = payload => ({
+    type:INCREMENT_CART,
+    payload
+});
+
+export const decrementCart = payload => ({
+    type:DECREMENT_CART,
+    payload
+});
+

@@ -1,4 +1,6 @@
 import axios from 'axios';
+import { LOADING, TOAST } from './Notify';
+import * as constants from '../constants';
 //Types
 const GET_PRODUCTS = 'PRODUCTS/GET';
 const CREATE_PRODUCT = 'PRODUCT/CREATE';
@@ -29,12 +31,20 @@ export default function reducer(state=initialState, action) {
 
 //actions
 export const getProducts = () => (
-    async dispatch => {
+    (dispatch) => {
         try{
-            const { data } = await axios.get('http://localhost:8089/products');
-            dispatch({ type: GET_PRODUCTS, payload: data });
+            axios.get('http://localhost:8089/products')
+            .then( ({data}) => {
+                dispatch({ type: GET_PRODUCTS, payload: data });
+                dispatch({ type: LOADING, payload: false });
+            });
+          
         }catch(error){
-
+            dispatch({ type: TOAST, payload: { 
+                text: 'ERROR GETTING PRODUCT',
+                color: constants.ERROR,
+                show: true
+             } });
         }
     }
 );

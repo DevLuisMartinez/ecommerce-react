@@ -1,7 +1,8 @@
 import axios from 'axios';
-import { DISABLED, TOAST } from './Notify';
+import { DISABLED, TOAST, LOADING } from './Notify';
 import * as constants from '../constants';
 //types
+const DEFAULT_CART = 'CART/DEFAULT';
 const ADD_CART = 'CART/ADD';
 const INCREMENT_CART = 'CART/INCREMENT';
 const DECREMENT_CART = 'CART/DECREMENT';
@@ -54,6 +55,12 @@ export default function reducer(state=initialState, action){
                     ),
                     products_quantity: state.products_quantity - 1
                 }     
+        case DEFAULT_CART:
+            return {
+                cart_id: action.payload.cart_id,
+                products: action.payload.products,
+                products_quantity: action.payload.quantity_cart
+            }
         default:
             return state;
     }
@@ -184,16 +191,18 @@ export const getCurrentCart = () => (
     async dispatch => {
         try{
             const { data } = await axios.get('http://localhost:8089/cart/current');
-            const products = {
-                ...data,
-                products: data.products.map( product => ({
-                    ...product,
-                    quantity: product.pivot.quantity,
-                    product_id: product.id
-                })),
-                quantity_cart: quantityByProduct(data.products)
+            if(data){
+                const products = {
+                    ...data,
+                    products: data.products.map( product => ({
+                        ...product,
+                        quantity: product.pivot.quantity,
+                        product_id: product.id
+                    })),
+                    quantity_cart: quantityByProduct(data.products)
+                }
+                dispatch({ type:GET_CURRENT_CART, payload: products});
             }
-            dispatch({ type:GET_CURRENT_CART, payload: products});
         }catch(error){
 
         }
@@ -211,16 +220,43 @@ export const incrementQuantityProductInCart = payload => (
 )
 
 export const checkout = () => (
-    async (dispatch) => {
+     (dispatch) => {
         try{
-            const { data } = await axios.post('http://localhost:8089/cart/checkout');
-            console.log(data);
+            axios.post('http://localhost:8089/cart/checkout')
+            .then( () => {
+                dispatch({ type: TOAST, payload: { 
+                    message: 'CHECKOUT SUCCESFULLY',
+                    color: constants.SUCCESS,
+                    show: true
+                 }})
+                 dispatch(cleanCart());
+            });
+           
         }catch(error){
             console.log(error);
         }
+
+        setTimeout(()=>{
+            dispatch({ type: DISABLED, payload: ''});
+            dispatch({ type: LOADING, payload: false});
+            dispatch({ type: TOAST, payload: { 
+                message: '',
+                color: constants.DEFAULT,
+                show: false
+             }})
+        },2000)
         
     }
 )
+
+export const cleanCart = () =>({
+    type:DEFAULT_CART,
+    payload: {
+        products: [],
+        quantity_cart: 0,
+        cart_id : 0
+    }
+});
 
 export const addCart = payload => ({
     type:ADD_CART,

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Link } from 'react-router-dom';
 import { connect } from 'react-redux';
-import { getCurrentCart } from '../reducers/Cart';
+import { getCurrentCart, cleanCart } from '../reducers/Cart';
 import H4 from './H4';
 
 import './styles/Navbar.css';
@@ -10,7 +10,8 @@ import './styles/Navbar.css';
 class Navbar extends Component{
 
     componentDidMount(){
-        const { getCurrentCart } = this.props;
+        const { getCurrentCart, cleanCart } = this.props;
+        cleanCart();
         getCurrentCart();
     }
 
@@ -18,7 +19,6 @@ class Navbar extends Component{
 
         const { title, Cart:{ products_quantity } } = this.props;
         const style = { color: "#fff" }
-
         return(
             <nav className="Navbar navbar navbar-dark bg-dark">
                 <Link className="navbar-brand" to="/">
@@ -39,7 +39,8 @@ const mapStateToProps = state => {
 }
 
 const mapDispatchToProps = dispatch => ({
-    getCurrentCart: () => dispatch(getCurrentCart())
+    getCurrentCart: () => dispatch(getCurrentCart()),
+    cleanCart: () => dispatch(cleanCart())
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Navbar)

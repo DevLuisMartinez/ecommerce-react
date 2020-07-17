@@ -5,7 +5,7 @@ import Toast from '../components/Toast';
 import ProductsGrid from '../components/ProductsGrid';
 import { getProducts } from '../reducers/Products';
 import { loading, disabled, toast } from '../reducers/Notify';
-import { addCart, existProductInCart, incrementQuantityProductInCart, saveProductsInCart } from '../reducers/Cart';
+import { addCart, existProductInCart, incrementQuantityProductInCart, saveProductsInCart, cleanCart } from '../reducers/Cart';
 
 class Home extends Component {
 
@@ -46,7 +46,7 @@ class Home extends Component {
             Notify:{ loading, disabled, toast }
         } = this.props;
 
-        console.log(toast);
+        console.log(this.props);
         return(
             <div className="container-fluid pt-5">
                 <Toast {...toast}/>
@@ -74,7 +74,7 @@ const mapDispatchToProps = dispatch => ({
     saveProductsInCart: payload => dispatch(saveProductsInCart(payload)),
     loading: payload => dispatch(loading(payload)),
     disabled: payload => dispatch(disabled(payload)),
-    toast: payload => dispatch(toast(payload))
+    toast: payload => dispatch(toast(payload)),
 });
  
 export default connect(mapStateToProps,mapDispatchToProps)(Home);
